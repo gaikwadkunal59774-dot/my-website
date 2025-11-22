@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Web File Manager — Responsive UI</title>
+    <style>
+      :root {
+        --bg: #0f121a;
+        --panel: #141a28;
+        --accent: #0ff;
+        --card: #1e293b;
+        --file: #1b2533;
+        --hover: rgba(0, 255, 255, 0.08);
+        --btn-bg: #0ff;
+        --btn-color: #000;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        height: 100vh;
+        background: var(--bg);
+        color: #eee;
+        user-select: none;
+        overflow: hidden;
+      }
+
+      /* LEFT PANEL */
+      #folderPanel {
+        width: 320px;
+        background: var(--panel);
+        border-right: 2px solid var(--accent);
+        padding: 12px;
+        height: 100vh;
+        overflow-y: auto;
+        box-sizing: border-box;
+        transition: width 0.3s;
+      }
+
+      #folderPanel h3 {
+        margin: 6px 0 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 18px;
+      }
+      #folderPanel button {
+        padding: 6px 12px;
+        background: var(--btn-bg);
+        color: var(--btn-color);
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+      #folderPanel button:hover {
+        background: #0cc;
+      }
+
+      .folderItem {
+        background: var(--card);
+        margin: 10px 0;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: background 0.2s;
+      }
+      .folderHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px;
+        cursor: pointer;
+        color: var(--accent);
+        font-weight: 600;
+        transition: background 0.2s;
+      }
+      .folderHeader:hover {
+        background: var(--hover);
+      }
+      .folderName {
+        font-weight: 700;
+      }
+      .folderActions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .filesList {
+        background: rgba(255, 255, 255, 0.02);
+        padding: 8px;
+        display: none;
+      }
+      .fileRow {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px;
+        margin: 6px 0;
+        border-radius: 6px;
+        background: var(--file);
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .fileRow:hover {
+        background: var(--hover);
+      }
+      .fileName {
+        color: #cfe;
+      }
+      .deleteBtn {
+        color: #f66;
+        cursor: pointer;
+        margin-left: 10px;
+      }
+
+      /* RIGHT PANEL */
+      #main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 14px;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+      #topbar {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+      #topbar button {
+        padding: 8px 14px;
+        background: var(--btn-bg);
+        color: var(--btn-color);
+        border: none;
+        cursor: pointer;
+        border-radius: 6px;
+        font-weight: 700;
+        transition: all 0.2s;
+      }
+      #topbar button:hover {
+        background: #0cc;
+      }
+      #openedFolderTitle {
+        font-weight: 700;
+        color: var(--accent);
+        font-size: 18px;
+      }
+      #content {
+        display: flex;
+        gap: 12px;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+      }
+      #rightFiles {
+        width: 360px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 8px;
+        padding: 12px;
+        overflow: auto;
+      }
+      .rightFileRow {
+        padding: 8px;
+        margin: 6px 0;
+        background: var(--file);
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background 0.2s;
+      }
+      .rightFileRow:hover {
+        background: var(--hover);
+      }
+      #viewer {
+        flex: 1;
+        background: #0b1a2a;
+        border-radius: 10px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+      }
+      #viewerHeader {
+        padding: 6px 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        color: var(--accent);
+        font-weight: 700;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      #viewerArea {
+        flex: 1;
+        margin-top: 8px;
+        overflow: auto;
+        font-family: "Courier New", monospace;
+        font-size: 14px;
+        color: #dff;
+        position: relative;
+      }
+      textarea {
+        width: 100%;
+        height: 100%;
+        background: #07101a;
+        color: #cfe;
+        padding: 12px;
+        border: none;
+        resize: none;
+        font-family: "Courier New", monospace;
+        font-size: 14px;
+      }
+      #copyBtn {
+        padding: 4px 8px;
+        background: var(--btn-bg);
+        color: var(--btn-color);
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.2s;
+      }
+      #copyBtn:hover {
+        background: #0cc;
+      }
+
+      /* Context menu */
+      #contextMenu {
+        position: fixed;
+        z-index: 9999;
+        display: none;
+        background: #0f1620;
+        border: 1px solid rgba(0, 255, 255, 0.12);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+        border-radius: 6px;
+        padding: 6px;
+      }
+      #contextMenu button {
+        display: block;
+        width: 100%;
+        padding: 8px 12px;
+        text-align: left;
+        background: transparent;
+        border: none;
+        color: #cfe;
+        cursor: pointer;
+      }
+      #contextMenu button:hover {
+        background: var(--hover);
+      }
+      .hint {
+        font-size: 12px;
+        color: #99a;
+        margin-top: 8px;
+      }
+
+      /* RESPONSIVE */
+      @media (max-width: 900px) {
+        #folderPanel {
+          width: 250px;
+        }
+        #rightFiles {
+          width: 280px;
+        }
+        #openedFolderTitle {
+          font-size: 16px;
+        }
+      }
+      @media (max-width: 700px) {
+        body {
+          flex-direction: column;
+        }
+        #folderPanel {
+          width: 100%;
+          height: auto;
+          border-right: none;
+          border-bottom: 2px solid var(--accent);
+        }
+        #content {
+          flex-direction: column;
+          gap: 8px;
+        }
+        #rightFiles {
+          width: 100%;
+          max-height: 200px;
+          overflow-y: auto;
+        }
+        #viewer {
+          width: 100%;
+          min-height: 300px;
+        }
+        #topbar {
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="folderPanel">
+      <h3>📁 Folders <button onclick="createFolder()">New</button></h3>
+      <div id="folderList"></div>
+      <div class="hint">
+        Left-click folder to expand/collapse. Right-click for Rename /
+        Delete.<br />Right-click file for Rename / Delete. Click file to open in
+        viewer.
+      </div>
+    </div>
+
+    <div id="main">
+      <div id="topbar">
+        <div id="openedFolderTitle">No folder opened</div>
+        <button id="uploadBtn" onclick="triggerUpload()" style="display: none">
+          Upload
+        </button>
+        <input
+          id="fileInput"
+          type="file"
+          multiple
+          style="display: none"
+          onchange="uploadToOpenedFolder(event)"
+        />
+        <div style="flex: 1"></div>
+        <button onclick="clearAllData()">Clear All</button>
+      </div>
+      <div id="content">
+        <div id="rightFiles">
+          <div style="font-weight: 700; margin-bottom: 8px">
+            Files in opened folder
+          </div>
+          <div id="filesInsideRight"></div>
+        </div>
+        <div id="viewer">
+          <div id="viewerHeader">
+            Viewer
+            <button
+              id="copyBtn"
+              onclick="copyViewerContent()"
+              style="display: none"
+            >
+              Copy Text
+            </button>
+          </div>
+          <div id="viewerArea">
+            <div style="padding: 12px; color: #99a">
+              Open a file to view it here
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="contextMenu">
+      <button id="ctxRename">Rename</button>
+      <button id="ctxDelete">Delete</button>
+    </div>
+
+    <script>
+      // FULL JS logic from your original code
+      let data = JSON.parse(localStorage.getItem("webFolders") || "{}");
+      let folderListEl = document.getElementById("folderList");
+      let filesInsideRight = document.getElementById("filesInsideRight");
+      let openedFolder = null;
+      let ctxTarget = null;
+      const ctxMenu = document.getElementById("contextMenu");
+      const ctxRenameBtn = document.getElementById("ctxRename");
+      const ctxDeleteBtn = document.getElementById("ctxDelete");
+      const copyBtn = document.getElementById("copyBtn");
+      const viewerArea = document.getElementById("viewerArea");
+
+      function save() {
+        localStorage.setItem("webFolders", JSON.stringify(data));
+      }
+      function sanitizeName(n) {
+        return n.trim();
+      }
+
+      function createFolder() {
+        let name = prompt("Folder name:");
+        if (!name) return;
+        name = sanitizeName(name);
+        if (data[name]) {
+          alert("Folder exists");
+          return;
+        }
+        data[name] = {};
+        save();
+        renderFolderList();
+      }
+
+      function renderFolderList() {
+        folderListEl.innerHTML = "";
+        Object.keys(data).forEach((folderName) => {
+          const container = document.createElement("div");
+          container.className = "folderItem";
+          const header = document.createElement("div");
+          header.className = "folderHeader";
+          header.innerHTML = `<div class="folderName">📁 ${folderName}</div>
+      <div class="folderActions"><span style="font-size:12px;color:#9ad">${
+        Object.keys(data[folderName]).length
+      }</span></div>`;
+          const filesList = document.createElement("div");
+          filesList.className = "filesList";
+
+          Object.keys(data[folderName]).forEach((fileName) => {
+            const fileRow = document.createElement("div");
+            fileRow.className = "fileRow";
+            fileRow.innerHTML = `<div class="fileName">${fileName}</div><div class="deleteBtn">⋮</div>`;
+            fileRow.onclick = (e) => {
+              e.stopPropagation();
+              openFile(folderName, fileName);
+            };
+            fileRow.oncontextmenu = (e) => {
+              e.preventDefault();
+              ctxTarget = { type: "file", folderName, name: fileName };
+              showContextMenu(e.clientX, e.clientY);
+            };
+            filesList.appendChild(fileRow);
+          });
+
+          header.onclick = () => {
+            const visible = filesList.style.display === "block";
+            document
+              .querySelectorAll(".filesList")
+              .forEach((el) => (el.style.display = "none"));
+            if (visible) {
+              filesList.style.display = "none";
+              openedFolder = null;
+              updateOpenedFolderUI();
+            } else {
+              filesList.style.display = "block";
+              openedFolder = folderName;
+              updateOpenedFolderUI();
+            }
+            renderRightFiles();
+          };
+          header.oncontextmenu = (e) => {
+            e.preventDefault();
+            ctxTarget = { type: "folder", folderName, name: folderName };
+            showContextMenu(e.clientX, e.clientY);
+          };
+          container.appendChild(header);
+          container.appendChild(filesList);
+          folderListEl.appendChild(container);
+        });
+      }
+
+      function updateOpenedFolderUI() {
+        const title = document.getElementById("openedFolderTitle");
+        const uploadBtn = document.getElementById("uploadBtn");
+        if (openedFolder) {
+          title.textContent = "Opened: " + openedFolder;
+          uploadBtn.style.display = "inline-block";
+        } else {
+          title.textContent = "No folder opened";
+          uploadBtn.style.display = "none";
+        }
+      }
+
+      function renderRightFiles() {
+        filesInsideRight.innerHTML = "";
+        if (!openedFolder) {
+          filesInsideRight.innerHTML =
+            '<div style="color:#99a">Open a folder to see files</div>';
+          return;
+        }
+        const files = Object.keys(data[openedFolder] || {});
+        if (files.length === 0) {
+          filesInsideRight.innerHTML =
+            '<div style="color:#99a">No files. Upload using the button.</div>';
+          return;
+        }
+        files.forEach((f) => {
+          const r = document.createElement("div");
+          r.className = "rightFileRow";
+          r.innerHTML = `<div>${f}</div><div style="display:flex;gap:8px"><button onclick="openFile('${openedFolder}','${escapeJs(
+            f
+          )}')">Open</button><button onclick="triggerRenameFile('${escapeJs(
+            f
+          )}',event)">Rename</button></div>`;
+          r.onclick = (e) => {
+            if (e.target.tagName !== "BUTTON") openFile(openedFolder, f);
+          };
+          r.oncontextmenu = (e) => {
+            e.preventDefault();
+            ctxTarget = { type: "file", folderName: openedFolder, name: f };
+            showContextMenu(e.clientX, e.clientY);
+          };
+          filesInsideRight.appendChild(r);
+        });
+      }
+
+      function escapeJs(s) {
+        return s.replace(/'/g, "\\'").replace(/"/g, '\\"');
+      }
+
+      function triggerUpload() {
+        if (!openedFolder) {
+          alert("Open a folder first.");
+          return;
+        }
+        document.getElementById("fileInput").click();
+      }
+      function uploadToOpenedFolder(e) {
+        if (!openedFolder) {
+          alert("Open a folder first.");
+          return;
+        }
+        Array.from(e.target.files).forEach((file) => {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            data[openedFolder][file.name] = ev.target.result;
+            save();
+            renderFolderList();
+            renderRightFiles();
+          };
+          reader.readAsDataURL(file);
+        });
+        e.target.value = "";
+      }
+
+      function openFile(folderName, fileName) {
+        const content = data[folderName] && data[folderName][fileName];
+        copyBtn.style.display = "none";
+        if (!content) {
+          viewerArea.innerHTML =
+            '<div style="padding:12px;color:#f66">File missing</div>';
+          return;
+        }
+        if (fileName.toLowerCase().endsWith(".pdf")) {
+          viewerArea.innerHTML = `<embed src="${content}" type="application/pdf" width="100%" height="100%">`;
+          return;
+        }
+        if (fileName.match(/\.(png|jpe?g|gif|webp)$/i)) {
+          viewerArea.innerHTML = `<img src="${content}" style="max-width:100%;">`;
+          return;
+        }
+        if (fileName.match(/\.(txt|js|css|html|md|json|py|c|cpp)$/i)) {
+          try {
+            const decoded = atob(content.split(",")[1]);
+            viewerArea.innerHTML = `<textarea id="txtViewer">${escapeHtml(
+              decoded
+            )}</textarea>`;
+            copyBtn.style.display = "inline-block";
+          } catch (err) {
+            viewerArea.innerHTML =
+              '<div style="padding:12px;color:#f66">Cannot render text file.</div>';
+          }
+          return;
+        }
+        viewerArea.innerHTML = `<iframe src="${content}" width="100%" height="100%"></iframe>`;
+      }
+
+      function escapeHtml(s) {
+        return s
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      function copyViewerContent() {
+        const txtArea = document.getElementById("txtViewer");
+        if (!txtArea) return;
+        txtArea.select();
+        document.execCommand("copy");
+        alert("Text copied to clipboard!");
+      }
+
+      /* Context menu */
+      function showContextMenu(x, y) {
+        ctxMenu.style.left = x + "px";
+        ctxMenu.style.top = y + "px";
+        ctxMenu.style.display = "block";
+      }
+      function hideContextMenu() {
+        ctxMenu.style.display = "none";
+        ctxTarget = null;
+      }
+
+      ctxRenameBtn.onclick = () => {
+        if (!ctxTarget) return hideContextMenu();
+        if (ctxTarget.type === "folder") {
+          const oldName = ctxTarget.folderName;
+          const newName = prompt("Rename folder:", oldName);
+          if (!newName) {
+            hideContextMenu();
+            return;
+          }
+          const n = sanitizeName(newName);
+          if (n === oldName) {
+            hideContextMenu();
+            return;
+          }
+          if (data[n]) {
+            alert("Folder exists.");
+            hideContextMenu();
+            return;
+          }
+          data[n] = data[oldName];
+          delete data[oldName];
+          if (openedFolder === oldName) openedFolder = n;
+          save();
+          renderFolderList();
+          renderRightFiles();
+          hideContextMenu();
+          return;
+        }
+        if (ctxTarget.type === "file") {
+          const { folderName, name } = ctxTarget;
+          const newName = prompt("Rename file:", name);
+          if (!newName) {
+            hideContextMenu();
+            return;
+          }
+          const nn = sanitizeName(newName);
+          if (nn === name) {
+            hideContextMenu();
+            return;
+          }
+          if (data[folderName][nn]) {
+            alert("File exists.");
+            hideContextMenu();
+            return;
+          }
+          data[folderName][nn] = data[folderName][name];
+          delete data[folderName][name];
+          save();
+          renderFolderList();
+          renderRightFiles();
+          hideContextMenu();
+        }
+      };
+
+      ctxDeleteBtn.onclick = () => {
+        if (!ctxTarget) return hideContextMenu();
+        if (ctxTarget.type === "folder") {
+          if (
+            confirm(`Delete folder "${ctxTarget.folderName}" and all files?`)
+          ) {
+            delete data[ctxTarget.folderName];
+            if (openedFolder === ctxTarget.folderName) {
+              openedFolder = null;
+              viewerArea.innerHTML =
+                '<div style="padding:12px;color:#99a">Open a file</div>';
+            }
+            save();
+            renderFolderList();
+            renderRightFiles();
+          }
+          hideContextMenu();
+          return;
+        }
+        if (ctxTarget.type === "file") {
+          const { folderName, name } = ctxTarget;
+          if (confirm(`Delete file "${name}"?`)) {
+            delete data[folderName][name];
+            save();
+            renderFolderList();
+            renderRightFiles();
+            viewerArea.innerHTML =
+              '<div style="padding:12px;color:#99a">Open a file</div>';
+          }
+          hideContextMenu();
+        }
+      };
+
+      function triggerRenameFile(fileName, ev) {
+        ev.stopPropagation();
+        ctxTarget = { type: "file", folderName: openedFolder, name: fileName };
+        showContextMenu(ev.clientX + 4, ev.clientY + 4);
+      }
+
+      document.addEventListener("click", () => {
+        if (ctxMenu.style.display === "block") hideContextMenu();
+      });
+      window.addEventListener("resize", hideContextMenu);
+      document.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+      });
+
+      function clearAllData() {
+        if (!confirm("Clear all data?")) return;
+        data = {};
+        openedFolder = null;
+        save();
+        renderFolderList();
+        renderRightFiles();
+        viewerArea.innerHTML =
+          '<div style="padding:12px;color:#99a">Open a file</div>';
+        updateOpenedFolderUI();
+      }
+
+      renderFolderList();
+      updateOpenedFolderUI();
+      renderRightFiles();
+
+      window.openFile = openFile;
+      window.triggerRenameFile = function (fname, ev) {
+        triggerRenameFile(fname, ev);
+      };
+    </script>
+  </body>
+</html>
